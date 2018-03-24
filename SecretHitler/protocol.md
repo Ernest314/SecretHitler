@@ -1,0 +1,232 @@
+*Version 1.0*
+
+This document describes the packet communication protocol
+used by the **Secret Hitler** addon.
+
+This protocol assumes good faith on the part of any players
+who have joined the same lobby. Communication does not have
+to be encrypted/obfuscated from players in the same lobby.
+
+TODO: I haven't decided yet if error checking is necessary
+for clients in the same lobby.
+
+---
+
+- `ADVR#####NN`
+	- Sent by **server**
+	- `ADVR`: advertises a lobby
+	- `#####`: room ID
+	- `NN`: number of players in lobby
+- `DSBD#####`
+	- Sent by **server**
+	- `DSBD`: disbands a lobby
+	- `#####`: room ID
+- `JOIN#####SSSHHH`
+	- Sent by **client**
+	- `JOIN`: request to join a lobby
+	- `#####`: room ID
+	- `SSS`: random salt, must meet salt requirements
+	- `HHH`: hash of salted room key
+- `CFRM#####{name}`
+	- Sent by **server**
+	- `CFRM`: confirm a request to join a lobby
+	- `#####`: room ID
+	- `{name}`: CharacterName-ServerName
+- `RJCT#####{name}`
+	- Sent by **server**
+	- `RJCT`: reject a request to join a lobby
+	- `#####`: room ID
+	- `{name}`: CharacterName-ServerName
+- `RCHK#####NN`
+	- Sent by **server**
+	- `RCHK`: ready check for all players in lobby
+	- `#####`: room ID
+	- `NN`: number of players in lobby (for checking names list)
+- `LSTN#####NN{name}`
+	- Sent by **server**
+	- `LSTN`: list names of players in lobby
+	- `#####`: room ID
+	- `NN`: index of listed name
+	- `{name}`: CharacterName-ServerName
+- `ACKR#####`
+	- Sent by **client**
+	- `ACKR`: acknowledge ready check (including names list)
+	- `#####`: room ID
+
+---
+
+- `ACKT######iiii`
+	- Sent by **client**
+	- `ACKT`: acknowledge turn data
+	- `#####`: room ID
+	- `iiii`: turn number
+- `RREQ#####iiii`
+	- Sent by **client**
+	- `RREQ`: re-request turn data
+	- `#####`: room ID
+	- `iiii`: turn number
+- `TURN#####iiiiASSGr...r`
+	- Sent by **server**
+	- `TURN`: game turn data
+	- `#####`: room ID
+	- `iiii`: turn number
+	- `ASSG`: secret identity assignment
+	- `r...r`: role (L/F/H - Liberal/Facist/Hitler), per player
+- `TURN#####iiiiPRESnnmmpp`
+	- Sent by **server**
+	- `TURN`: game turn data
+	- `#####`: room ID
+	- `iiii`: turn number
+	- `PRES`: pass presidential candidacy to `pp`
+	- `nn`, `mm`: indices of last *elected* president, chancellor;
+	              `00` if the slot is open (player is eligible)
+	- `pp`: index of presidential candidate
+- `NMNT#####nn`
+	- Sent by **client** (presidential candidate)
+	- `NMNT`: nominate a chancellor
+	- `#####`: room ID
+	- `nn`: index of nominated chancellor
+- `TURN#####iiiiTCKTppcc`
+	- Sent by **server**
+	- `TURN`: game turn data
+	- `#####`: room ID
+	- `iiii`: turn number
+	- `TCKT`: ticket up for election
+	- `pp`: index of nominated president
+	- `cc`: index of nominated chancellor
+- `VOTE#####v`
+	- Sent by **client**
+	- `VOTE`: vote (for ticket)
+	- `#####`: room ID
+	- `v`: vote (Y/N)
+- `TURN#####iiiiVOTEv...v`
+	- Sent by **server**
+	- `TURN`: game turn data
+	- `#####`: room ID
+	- `iiii`: turn number
+	- `VOTE`: player votes, in order of initial list
+	- `v...v`: vote (Y/N), repeated for each player
+- `TURN#####iiiiRVTEvN[P]`
+	- Sent by **server**
+	- `TURN`: game turn data
+	- `#####`: room ID
+	- `iiii`: turn number
+	- `RVTE`: results of vote
+	- `v`: result (Y/N), tie counts as no
+	- `N`: election tracker number (1~3)
+	- `[P]`: if anarchy, the role of enacted policy (L/F)
+- `TURN#####iiiiHCHKh`
+	- Sent by **server**
+	- `TURN`: game turn data
+	- `#####`: room ID
+	- `iiii`: turn number
+	- `HCHK`: Hitler identity check
+	- `h`: whether chancellor is Hitler (Y/N)
+- `TURN#####iiiiPCYPppp`
+	- Sent by **server**
+	- `TURN`: game turn data
+	- `#####`: room ID
+	- `iiii`: turn number
+	- `PCYP`: policies dealt to president
+	- `ppp`: role of each policy (L/F)
+- `DCRD#####p`
+	- Sent by **client** (president- or chancellor-elect)
+	- `DCRD`: Discard a (dealt) policy
+	- `#####`: room ID
+	- `p`: role of discarded policy (L/F)
+- `TURN#####iiiiPCYCppv`
+	- Sent by **server**
+	- `TURN`: game turn data
+	- `#####`: room ID
+	- `iiii`: turn number
+	- `PCYC`: policies dealt to chancellor
+	- `pp`: role of each policy (L/F)
+	- `v`: whether a veto is allowed (Y/N)
+- `TURN#####iiiiENCTp`
+	- Sent by **server**
+	- `TURN`: game turn data
+	- `#####`: room ID
+	- `iiii`: turn number
+	- `ENCT`: enact a policy
+	- `p`: role of policy (L/F)
+- `RVTO#####`
+	- Sent by **client** (chancellor-elect)
+	- `RVTO`: request a veto (from president)
+	- `#####`: room ID
+- `TURN#####iiiiRVTO`
+	- Sent by **server**
+	- `TURN`: game turn data
+	- `#####`: room ID
+	- `iiii`: turn number
+	- `RVTO`: chancellor has requested a veto
+- `VETO#####v`
+	- Sent by **client** (president-elect)
+	- `VETO`: veto (or not) the remaining policies
+	- `#####`: room ID
+	- `v`: the outcome of the veto (Y/N)
+- `TURN#####iiiiVETO[P]`
+	- Sent by **server**
+	- `TURN`: game turn data
+	- `#####`: room ID
+	- `iiii`: turn number
+	- `VETO`: president has approved veto
+	- `[P]`: if anarchy, the role of enacted policy (L/F)
+- `TURN#####iiiiEXECILi...i`
+	- Sent by **server**
+	- `TURN`: game turn data
+	- `#####`: room ID
+	- `iiii`: turn number
+	- `EXEC`: executive action
+	- `IL`: investigate loyalty
+	- `i...i`: whether each player can be investigated (Y/N)
+- `TURN#####iiiiEXECSE`
+	- Sent by **server**
+	- `TURN`: game turn data
+	- `#####`: room ID
+	- `iiii`: turn number
+	- `EXEC`: executive action
+	- `SE`: special election
+- `TURN#####iiiiEXECPPppp`
+	- Sent by **server**
+	- `TURN`: game turn data
+	- `#####`: room ID
+	- `iiii`: turn number
+	- `EXEC`: executive action
+	- `PP`: policy peek
+	- `ppp`: the role of the next 3 policies (L/F)
+- `TURN#####iiiiEXECXT`
+	- Sent by **server**
+	- `TURN`: game turn data
+	- `#####`: room ID
+	- `iiii`: turn number
+	- `EXEC`: executive action
+	- `XT`: execution
+- `INVG#####nn`
+	- Sent by **client** (president-elect)
+	- `INVG`: investigate loyalty
+	- `#####`: room ID
+	- `nn`: index of player to investigate
+- `TURN#####iiiiINVGr`
+	- Sent by **server**
+	- `TURN`: game turn data
+	- `#####`: room ID
+	- `iiii`: turn number
+	- `INVG`: investigate loyalty
+	- `r`: loyalty of player investigated (L/F)
+- `SELC#####nn`
+	- Sent by **client** (president-elect)
+	- `SELC`: special election
+	- `#####`: room ID
+	- `nn`: index of player to nominate
+- `EXEC#####nn`
+	- Sent by **client** (president-elect)
+	- `EXEC`: execute
+	- `#####`: room ID
+	- `nn`: index of player to execute
+- `TURN#####iiiiXCTEnn`
+	- Sent by **server**
+	- `TURN`: game turn data
+	- `#####`: room ID
+	- `iiii`: turn number
+	- `XCTE`: execution
+	- `nn`: index of player executed
