@@ -2,7 +2,7 @@
 -- actual immutable types) used by the addon.
 
 local CONST = {
-	VERSION = "1.0.0",
+	VERSION = "1.0.1",
 	CHANNEL_NAME = "extSecretHitler1",
 	HASH_REPS = 4,
 	BROADCAST_DELAY = 6, -- seconds

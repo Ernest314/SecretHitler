@@ -8,6 +8,12 @@ local comm = SecretHitlerNS.comm;
 local isGameOver = false;
 local isServer = false;
 
+local function close_results()
+	PlaySound(CONST.SOUND_BUTTON_CLICK);
+	SecretHitler_Game_Votes:Hide();
+	comm.send("ACKT" .. game.roomID .. util.pad_int(game.turn, 4));
+end
+
 local function lineup_closed()
 	PlaySound(CONST.SOUND_BUTTON_CLICK);
 	SecretHitler_Game_Lineup:Hide();
